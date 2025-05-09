@@ -1,97 +1,167 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Campus Parking Management App
 
-# Getting Started
+A React Native mobile application for managing campus parking reservations. This application allows users to view available parking spots, make reservations, and administrators to manage the parking inventory.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Features
 
-## Step 1: Start Metro
+### User Features
+- User registration and authentication
+- View available parking lots on campus
+- Check real-time parking spot availability
+- Book parking spots for specific dates and times
+- Make secure payments
+- Receive booking confirmations with QR codes
+- View booking history
+- Cancel bookings
+- Profile management
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### Admin Features
+- Dashboard with occupancy statistics
+- Parking inventory management (add/remove/modify lots and spots)
+- View reservation logs and user data
+- Generate usage reports
+- Handle user support requests
+- Configure system parameters (pricing, operating hours)
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Technologies Used
 
-```sh
-# Using npm
-npm start
+- **React Native**: Cross-platform mobile application development
+- **Firebase Authentication**: User registration and login
+- **Firebase Firestore**: Database for storing parking lots, spots, and bookings
+- **Firebase Cloud Messaging**: Push notifications
+- **React Navigation**: Navigation between screens
+- **React Native Paper**: UI components library
+- **React Native Maps**: For campus map visualization
+- **React Native QRCode**: For generating QR codes for parking passes
 
-# OR using Yarn
-yarn start
+## Setup Instructions
+
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+- React Native development environment
+- Firebase account
+
+### Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/campus-parking-app.git
+   cd campus-parking-app
+   ```
+
+2. Install the dependencies:
+   ```
+   npm install
+   # or
+   yarn install
+   ```
+
+3. Firebase Setup:
+   - Create a new Firebase project in the Firebase console
+   - Enable Authentication (Email/Password)
+   - Create a Firestore database
+   - Set up Cloud Messaging
+   - Add an Android/iOS app in the Firebase project settings
+   - Download the configuration file (google-services.json for Android, GoogleService-Info.plist for iOS)
+   - Place the configuration file in the appropriate directory
+
+4. Update Firebase Configuration:
+   - Open `src/config/firebase.js`
+   - Replace the placeholders with your Firebase project configuration
+
+5. Running the app:
+   ```
+   # For Android
+   npm run android
+   # or
+   yarn android
+
+   # For iOS
+   npm run ios
+   # or
+   yarn ios
+   ```
+
+## Project Structure
+
+```
+campus-parking-app/
+├── assets/
+│   ├── icons/
+│   ├── images/
+│   └── fonts/
+├── src/
+│   ├── components/
+│   │   ├── common/
+│   │   ├── auth/
+│   │   ├── booking/
+│   │   ├── admin/
+│   │   └── notifications/
+│   ├── screens/
+│   │   ├── auth/
+│   │   ├── user/
+│   │   └── admin/
+│   ├── navigation/
+│   ├── services/
+│   ├── utils/
+│   ├── context/
+│   └── config/
+├── App.js
+└── package.json
 ```
 
-## Step 2: Build and run your app
+## Initial Setup for Administrators
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+To set up the first admin user:
 
-### Android
+1. Register a regular user through the app
+2. In the Firebase console, navigate to Firestore
+3. Find the user document in the "users" collection
+4. Update the user's "role" field to "admin"
+5. The user will now have access to the admin dashboard on next login
 
-```sh
-# Using npm
-npm run android
+## Database Collections Structure
 
-# OR using Yarn
-yarn android
-```
+### users
+- id: string (Auto-generated)
+- name: string
+- email: string
+- vehicleType: string
+- vehicleNumber: string
+- role: string ("user" or "admin")
+- bookings: array (booking IDs)
+- createdAt: timestamp
 
-### iOS
+### parkingLots
+- id: string (Auto-generated)
+- name: string
+- location: string
+- latitude: number
+- longitude: number
+- totalSpots: number
+- hourlyRate: number
+- spots: array (spot objects)
+- isActive: boolean
+- createdAt: timestamp
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+### bookings
+- id: string (Auto-generated)
+- userId: string
+- lotId: string
+- spotId: string
+- date: timestamp
+- startTime: timestamp
+- endTime: timestamp
+- status: string ("temporary", "confirmed", "cancelled")
+- paymentDetails: object
+- createdAt: timestamp
+- expiresAt: timestamp (for temporary reservations)
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+## License
 
-```sh
-bundle install
-```
+This project is licensed under the MIT License.
 
-Then, and every time you update your native dependencies, run:
+## Acknowledgements
 
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+This project was created as a BCA final year project.
