@@ -5,7 +5,7 @@ import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import functions from '@react-native-firebase/functions';
 import messaging from '@react-native-firebase/messaging';
-import app from '@react-native-firebase/app';
+import firebase from '@react-native-firebase/app';
 
 // Your Firebase configuration
 // Replace with your actual Firebase project configuration when implementing
@@ -20,8 +20,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase if it hasn't been initialized
-if (!app().apps.length) {
-  app().initializeApp(firebaseConfig);
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
 }
 
 // Export the services
