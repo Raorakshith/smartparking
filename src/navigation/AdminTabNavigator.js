@@ -8,9 +8,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import DashboardScreen from '../screens/admin/DashboardScreen';
 import ParkingManagementScreen from '../screens/admin/ParkingManagementScreen';
 import AddParkingSpotScreen from '../screens/admin/AddParkingSpotScreen';
-import UserManagementScreen from '../screens/admin/UserManagementScreen';
-import BookingManagementScreen from '../screens/admin/BookingManagementScreen';
-import AdminProfileScreen from '../screens/admin/AdminProfileScreen';
+// import BookingManagementScreen from '../screens/admin/BookingManagementScreen';
+// import AdminProfileScreen from '../screens/admin/AdminProfileScreen';
+import UserManagement from '../screens/admin/UserManagement';
+import AdminDashboard from '../screens/admin/AdminDashboard';
 
 const Tab = createBottomTabNavigator();
 const DashboardStack = createStackNavigator();
@@ -27,14 +28,14 @@ const ManagementStackScreen = () => (
   <ManagementStack.Navigator screenOptions={{ headerShown: false }}>
     <ManagementStack.Screen name="ParkingManagement" component={ParkingManagementScreen} />
     <ManagementStack.Screen name="AddParkingSpot" component={AddParkingSpotScreen} />
-    <ManagementStack.Screen name="UserManagement" component={UserManagementScreen} />
-    <ManagementStack.Screen name="BookingManagement" component={BookingManagementScreen} />
+    <ManagementStack.Screen name="UserManagement" component={UserManagement} />
+    {/* <ManagementStack.Screen name="BookingManagement" component={BookingManagementScreen} /> */}
   </ManagementStack.Navigator>
 );
 
 const ProfileStackScreen = () => (
   <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-    <ProfileStack.Screen name="AdminProfile" component={AdminProfileScreen} />
+    <ProfileStack.Screen name="AdminProfile" component={AdminDashboard} />
   </ProfileStack.Navigator>
 );
 

@@ -6,12 +6,12 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 
 // Screens
-import LoginScreen from './screens/auth/LoginScreen';
-import RegisterScreen from './screens/auth/RegisterScreen';
-import ForgotPasswordScreen from './screens/auth/ForgotPasswordScreen';
-import UserTabNavigator from './navigation/UserTabNavigator';
-import AdminTabNavigator from './navigation/AdminTabNavigator';
-import LoadingScreen from './screens/LoadingScreen';
+import LoginScreen from './src/screens/auth/LoginScreen';
+import RegisterScreen from './src/screens/auth/RegisterScreen';
+import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
+import UserTabNavigator from './src/navigation/UserTabNavigator';
+import AdminTabNavigator from './src/navigation/AdminTabNavigator';
+import LoadingScreen from './src/screens/LoadingScreen';
 
 const Stack = createStackNavigator();
 

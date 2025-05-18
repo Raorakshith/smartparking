@@ -86,7 +86,7 @@ const BookingConfirmationScreen = ({ route, navigation }) => {
         <View style={styles.qrContainer}>
           <Text style={styles.qrText}>Show this QR code when arriving at the parking spot</Text>
           <Image 
-            source={require('../../assets/qr-placeholder.png')} 
+            source={require('../../assets/qr-placeholder.jpg')} 
             style={styles.qrCode}
             resizeMode="contain"
           />
