@@ -1,277 +1,235 @@
 // src/screens/auth/RegisterScreen.js
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  StyleSheet, 
-  TouchableOpacity, 
-  KeyboardAvoidingView, 
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  KeyboardAvoidingView,
   Platform,
-  Alert 
+  ScrollView,
+  Alert,
 } from 'react-native';
-import { TextInput, Button, ActivityIndicator } from 'react-native-paper';
-import { useAuth } from '../../context/AuthContext';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
+import Input from '../../components/common/Input';
+import Button from '../../components/common/Button';
 
 const RegisterScreen = ({ navigation }) => {
-  // Form state
-  const [name, setName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [vehicleType, setVehicleType] = useState('');
-  const [vehicleNumber, setVehicleNumber] = useState('');
-  
-  // Validation state
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [isFormValid, setIsFormValid] = useState(false);
-  
-  // Get auth context
-  const { register, loading, error } = useAuth();
 
-  // Validate form on input change
-  useEffect(() => {
-    validateForm();
-  }, [name, email, password, confirmPassword, vehicleType, vehicleNumber]);
+  const validate = () => {
+    let newErrors = {};
+    let isValid = true;
 
-  // Form validation
-  const validateForm = () => {
-    let errors = {};
-    let formIsValid = true;
-
-    // Validate name
-    if (!name.trim()) {
-      errors.name = 'Name is required';
-      formIsValid = false;
+    if (!fullName) {
+      newErrors.fullName = 'Please enter your full name';
+      isValid = false;
     }
 
-    // Validate email
-    if (!email.trim()) {
-      errors.email = 'Email is required';
-      formIsValid = false;
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        errors.email = 'Enter a valid email address';
-        formIsValid = false;
-      }
+    if (!email) {
+      newErrors.email = 'Please enter your email';
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Please enter a valid email';
+      isValid = false;
     }
 
-    // Validate password
     if (!password) {
-      errors.password = 'Password is required';
-      formIsValid = false;
+      newErrors.password = 'Please enter a password';
+      isValid = false;
     } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
-      formIsValid = false;
+      newErrors.password = 'Password must be at least 6 characters';
+      isValid = false;
     }
 
-    // Validate confirm password
-    if (password !== confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-      formIsValid = false;
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+      isValid = false;
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      isValid = false;
     }
 
-    // Validate vehicle type
-    if (!vehicleType.trim()) {
-      errors.vehicleType = 'Vehicle type is required';
-      formIsValid = false;
-    }
-
-    // Validate vehicle number
-    if (!vehicleNumber.trim()) {
-      errors.vehicleNumber = 'Vehicle number is required';
-      formIsValid = false;
-    }
-
-    setErrors(errors);
-    setIsFormValid(formIsValid);
+    setErrors(newErrors);
+    return isValid;
   };
 
-  // Handle registration
   const handleRegister = async () => {
-    if (!isFormValid) {
-      Alert.alert('Form Error', 'Please fix all errors before submitting');
-      return;
-    }
+    if (!validate()) return;
 
-    const userData = {
-      name,
-      email,
-      vehicleType,
-      vehicleNumber,
-      bookings: []
-    };
-
-    await register(email, password, userData);
-    
-    // If registration is successful, navigation will be handled by the auth state change
-    if (error) {
-      Alert.alert('Registration Failed', error);
-    } else {
-      // Show verification message
-      Alert.alert(
-        'Verification Email Sent',
-        'Please check your email and verify your account before logging in.',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Login')
-          }
-        ]
+    setLoading(true);
+    try {
+      // Create user with email and password
+      const { user } = await auth().createUserWithEmailAndPassword(
+        email,
+        password
       );
+      
+      // Create user profile in Firestore
+      await firestore().collection('users').doc(user.uid).set({
+        fullName,
+        email,
+        role: 'user', // Default role is user
+        createdAt: firestore.FieldValue.serverTimestamp(),
+      });
+      
+      // Update the user's display name
+      await user.updateProfile({
+        displayName: fullName,
+      });
+      
+      // Success - no need to navigate, App.js handles auth state changes
+    } catch (error) {
+      console.log('Registration error:', error);
+      
+      let errorMessage = 'Failed to register. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already in use.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address format.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak.';
+      }
+      
+      Alert.alert('Registration Failed', errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Register to book parking spaces</Text>
-        </View>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}>
+            <Icon name="arrow-back" size={24} color="#333" />
+          </TouchableOpacity>
 
-        <View style={styles.form}>
-          <TextInput
-            label="Full Name"
-            value={name}
-            onChangeText={setName}
-            style={styles.input}
-            error={!!errors.name}
-          />
-          {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Sign up to continue</Text>
 
-          <TextInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={styles.input}
-            error={!!errors.email}
-          />
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            <Input
+              label="Full Name"
+              placeholder="Enter your full name"
+              value={fullName}
+              onChangeText={setFullName}
+              icon="person"
+              autoCapitalize="words"
+              error={errors.fullName}
+            />
 
-          <TextInput
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            style={styles.input}
-            error={!!errors.password}
-          />
-          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+            <Input
+              label="Email"
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              icon="email"
+              error={errors.email}
+            />
 
-          <TextInput
-            label="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            style={styles.input}
-            error={!!errors.confirmPassword}
-          />
-          {errors.confirmPassword && (
-            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-          )}
+            <Input
+              label="Password"
+              placeholder="Create a password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              icon="lock"
+              error={errors.password}
+            />
 
-          <TextInput
-            label="Vehicle Type (Car, Motorcycle, etc.)"
-            value={vehicleType}
-            onChangeText={setVehicleType}
-            style={styles.input}
-            error={!!errors.vehicleType}
-          />
-          {errors.vehicleType && <Text style={styles.errorText}>{errors.vehicleType}</Text>}
+            <Input
+              label="Confirm Password"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              icon="lock"
+              error={errors.confirmPassword}
+            />
 
-          <TextInput
-            label="Vehicle Number / License Plate"
-            value={vehicleNumber}
-            onChangeText={setVehicleNumber}
-            style={styles.input}
-            error={!!errors.vehicleNumber}
-          />
-          {errors.vehicleNumber && <Text style={styles.errorText}>{errors.vehicleNumber}</Text>}
+            <Button
+              title="Register"
+              onPress={handleRegister}
+              loading={loading}
+              style={styles.registerButton}
+            />
 
-          <Button
-            mode="contained"
-            onPress={handleRegister}
-            style={styles.button}
-            disabled={!isFormValid || loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#ffffff" size="small" />
-            ) : (
-              'Register'
-            )}
-          </Button>
-
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Already have an account?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.loginLink}>Login</Text>
-            </TouchableOpacity>
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Already have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.loginLink}>Login</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
-  scrollContainer: {
+  scrollContent: {
     flexGrow: 1,
     padding: 20,
   },
-  header: {
-    marginBottom: 30,
+  backButton: {
+    padding: 10,
+    marginLeft: -10,
+    marginBottom: 10,
+  },
+  formContainer: {
+    width: '100%',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
-    marginTop: 5,
+    marginBottom: 24,
   },
-  form: {
-    width: '100%',
-  },
-  input: {
-    marginBottom: 10,
-    backgroundColor: '#f9f9f9',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-    marginBottom: 10,
-    marginTop: -5,
-  },
-  button: {
-    marginTop: 20,
-    paddingVertical: 8,
-    backgroundColor: '#4285F4',
+  registerButton: {
+    marginTop: 10,
+    marginBottom: 20,
   },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   loginText: {
     color: '#666',
+    fontSize: 14,
   },
   loginLink: {
-    color: '#4285F4',
-    fontWeight: 'bold',
-    marginLeft: 5,
+    color: '#4A80F0',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

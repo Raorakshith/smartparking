@@ -3,8 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import AuthNavigator from './AuthNavigator';
-import UserNavigator from './UserNavigator';
-import AdminNavigator from './AdminNavigator';
+import UserNavigator from './UserTabNavigator';
+import AdminNavigator from './AdminTabNavigator';
 import LoadingScreen from '../screens/common/LoadingScreen';
 
 const AppNavigator = () => {
